@@ -280,10 +280,18 @@ elif page == "Prediksi":
 
     st.write("Masukkan data untuk memprediksi kualitas pisang:")
 
+    # Pastikan `target` sudah didefinisikan, jika tidak, beri pilihan kepada pengguna
+    if 'target' not in locals():
+        target = st.selectbox(
+            "Pilih Target untuk Prediksi", 
+            dataset.columns, 
+            help="Pilih kolom target yang ingin diprediksi."
+        )
+    
     # Input form untuk prediksi
     input_data = {}
     for col in dataset.columns:
-        if col != target:
+        if col != target:  # Pastikan kolom target tidak dimasukkan
             input_data[col] = st.number_input(f"Masukkan nilai untuk {col}", min_value=float(dataset[col].min()), max_value=float(dataset[col].max()), value=float(dataset[col].mean()))
 
     if st.button("Prediksi"):
