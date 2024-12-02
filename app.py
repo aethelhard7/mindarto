@@ -79,9 +79,9 @@ st.markdown("""
 
     /* Styling for regression scores specifically */
     .stMarkdown.regression-score {
-        background-color: #f1faee;  /* Latar belakang lebih terang */
+        background-color: #ffcccb;  /* Soft red background for negative score */
         padding: 12px;
-        color: #1d3557;  /* Teks lebih gelap agar kontras */
+        color: #d32f2f;  /* Dark red for text */
         font-weight: bold;
         border-radius: 8px;
     }
@@ -111,75 +111,8 @@ def load_data():
 # Load dataset
 dataset = load_data()
 
-# --- Page: Beranda ---
-if page == "Beranda":
-    st.title("🍌 Prediksi Kualitas Pisang")
-    st.write(
-        """
-        Selamat datang di aplikasi **Prediksi Kualitas Pisang**. 
-        Aplikasi ini dirancang untuk membantu Anda menganalisis dan memprediksi kualitas pisang 
-        berdasarkan berbagai fitur seperti kandungan gula, kematangan, dan lainnya.
-        
-        Fitur utama aplikasi ini:
-        - Eksplorasi data melalui analisis deskriptif
-        - Visualisasi interaktif untuk mempermudah pemahaman
-        - Model pembelajaran mesin untuk prediksi kualitas
-        - Kemudahan prediksi dengan masukan data manual
-        
-        Gunakan menu di samping untuk memulai.
-        """
-    )
-
-# --- Page: Analisis Data ---
-elif page == "Analisis Data":
-    st.title("Analisis Data Eksploratif (EDA)")
-    st.write("### Tampilan Dataset")
-    st.dataframe(dataset, height=400, use_container_width=True)
-
-    st.write("### Statistik Deskriptif dan Nilai Hilang")
-    col1, col2 = st.columns(2)
-    with col1:
-        st.write("#### Statistik Deskriptif")
-        st.write(dataset.describe())
-    with col2:
-        st.write("#### Pemeriksaan Nilai Hilang")
-        missing_values = dataset.isnull().sum()
-        st.write(missing_values[missing_values > 0])
-
-    st.write("### Sebaran Data Kategorikal")
-    categorical_columns = ['variety', 'region', 'quality_category', 'ripeness_category']
-    for col in categorical_columns:
-        st.write(f"#### Sebaran {col}")
-        st.write(dataset[col].value_counts())
-
-# --- Page: Visualisasi Data ---
-elif page == "Visualisasi Data":
-    st.title("Visualisasi Interaktif")
-
-    # Scatter plot dengan Plotly
-    st.write("### Scatter Plot")
-    fig = px.scatter(
-        dataset, x="quality_score", y="sugar_content_brix", color="region",
-        title="Skor Kualitas vs Kandungan Gula (Brix)",
-        template="plotly_white"
-    )
-    st.plotly_chart(fig)
-
-    # Histogram
-    st.write("### Histogram Skor Kualitas")
-    fig_hist = px.histogram(dataset, x="quality_score", nbins=30, title="Distribusi Skor Kualitas", template="plotly_white")
-    st.plotly_chart(fig_hist)
-
-    # Box Plot
-    st.write("### Kekerasan (Firmness) Berdasarkan Kategori Kematangan")
-    fig_box = px.box(
-        dataset, x="ripeness_category", y="firmness_kgf", color="ripeness_category",
-        title="Firmness Berdasarkan Kategori Kematangan", template="plotly_white"
-    )
-    st.plotly_chart(fig_box)
-
 # --- Page: Latih Model ---
-elif page == "Latih Model":
+if page == "Latih Model":
     st.title("Pelatihan Model Pembelajaran Mesin")
 
     st.write("### Pilih Fitur dan Target")
@@ -211,33 +144,15 @@ elif page == "Latih Model":
                 model = RandomForestRegressor(n_estimators=100)
                 model.fit(X_train, y_train)
                 r2_score = model.score(X_test, y_test)
-                st.success(f"Skor R² Model Regresi: **{r2_score:.2f}**")
+                
+                # Apply the custom style for the regression score
+                if r2_score < 0:
+                    st.markdown(f"### Skor R² Model Regresi: **{r2_score:.2f}**", unsafe_allow_html=True)
+                    st.markdown(f'<div class="stMarkdown regression-score">Skor R² Model Regresi: **{r2_score:.2f}**</div>', unsafe_allow_html=True)
+                else:
+                    st.markdown(f"### Skor R² Model Regresi: **{r2_score:.2f}**", unsafe_allow_html=True)
 
             st.session_state.model = model
             st.session_state.scaler = scaler
             st.session_state.features = features
             st.session_state.target = target
-
-# --- Page: Prediksi Kualitas ---
-elif page == "Prediksi Kualitas":
-    st.title("Prediksi Kualitas Pisang")
-
-    if "model" not in st.session_state or "scaler" not in st.session_state:
-        st.error("Model belum dilatih. Silakan latih model terlebih dahulu di halaman 'Latih Model'.")
-    else:
-        features = st.session_state.features
-        scaler = st.session_state.scaler
-        model = st.session_state.model
-
-        st.write("### Masukkan Data untuk Prediksi")
-        input_data = {feature: st.number_input(f"Masukkan nilai untuk {feature}", value=0.0, step=0.1) for feature in features}
-
-        if st.button("Prediksi Kualitas"):
-            input_df = pd.DataFrame([input_data])
-            input_scaled = scaler.transform(input_df)
-            prediction = model.predict(input_scaled)
-
-            if dataset[st.session_state.target].dtype == 'object' or len(dataset[st.session_state.target].unique()) < 10:
-                st.markdown(f"<div class='regression-score'>Hasil Prediksi: **{prediction[0]}**</div>", unsafe_allow_html=True)
-            else:
-                st.markdown(f"<div class='regression-score'>Skor R² Prediksi: **{prediction[0]:.2f}</div>", unsafe_allow_html=True)
