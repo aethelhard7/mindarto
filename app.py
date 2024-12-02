@@ -23,7 +23,7 @@ page = st.sidebar.selectbox(
 # Load the dataset
 @st.cache_data  # Cache the dataset loading function
 def load_data():
-    return pd.read_csv("C:/Users/ASUSTeK/Downloads/archive/banana_quality_dataset.csv")
+    return pd.read_csv("banana_quality_dataset.csv")
 
 # Load dataset
 dataset = load_data()
