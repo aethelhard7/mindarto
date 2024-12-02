@@ -14,149 +14,6 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# CSS for styling
-st.markdown("""
-<style>
-    /* General Background */
-    .stApp {
-        background-color: #f4f4f9;  /* Soft light background for the whole app */
-    }
-
-    /* Styling for the header titles */
-    h1, h2, h3 {
-        color: #1d3557;
-        font-weight: 600;
-    }
-
-    /* Sidebar background */
-    .stSidebar {
-        background-color: #1d3557;
-        color: white;
-    }
-
-    /* Styling for the page navigation */
-    .stSidebar .stSelectbox, .stSidebar .stButton {
-        color: #fff;
-        background-color: #457b9d;
-    }
-
-    /* Styling for buttons */
-    .stButton {
-        background-color: #1d3557;
-        color: #fff;
-        font-weight: bold;
-        border-radius: 8px;
-        padding: 12px 25px;
-        transition: background-color 0.3s ease;
-    }
-    .stButton:hover {
-        background-color: #457b9d;
-    }
-
-    /* Custom styling for Markdown */
-    .stMarkdown {
-        background-color: #a8dadc;
-        padding: 15px;
-        border-radius: 10px;
-        font-weight: bold;
-        color: #333;
-    }
-
-    /* Regression Score Background */
-    .stMarkdown.regression-score {
-        background-color: #f1faee;  /* Soft pastel for regression results */
-        color: #333;
-        padding: 15px;
-        border-radius: 8px;
-    }
-
-    /* DataFrame Styling */
-    .stDataFrame {
-        background-color: white;
-        border-radius: 8px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-
-    /* Styling for the page title */
-    .stTitle {
-        font-weight: bold;
-        font-size: 32px;
-        color: #1d3557;
-    }
-
-    /* Table Styling */
-    .stTable {
-        color: #333;
-    }
-
-    /* Styling for Success and Error Messages */
-    .stSuccess, .stError {
-        color: #fff;
-        background-color: #2d6a4f; /* Green for success */
-        border-radius: 5px;
-        padding: 10px 20px;
-        font-weight: bold;
-        font-size: 16px;
-    }
-    .stError {
-        background-color: #d90429; /* Red for error */
-    }
-
-    /* Styling for the input labels */
-    .stTextInput, .stNumberInput {
-        color: #333;
-        background-color: #ffffff;
-        border-radius: 8px;
-        border: 1px solid #d1d1d6;
-        padding: 10px;
-        transition: border 0.3s ease, box-shadow 0.3s ease;
-    }
-
-    .stTextInput input, .stNumberInput input {
-        color: #333;
-    }
-
-    .stNumberInput label, .stTextInput label {
-        color: #1d3557;
-        font-weight: bold;
-    }
-
-    .stTextInput:focus, .stNumberInput:focus {
-        border-color: #457b9d;
-        box-shadow: 0 0 5px rgba(70, 123, 157, 0.5);
-    }
-
-    /* Styling for messages */
-    .stMessage {
-        color: #333;
-        font-weight: bold;
-    }
-
-    /* Styling the dropdown for features and target */
-    .stSelectbox {
-        border-radius: 8px;
-        padding: 10px;
-        border: 1px solid #d1d1d6;
-        background-color: #ffffff;
-        transition: border 0.3s ease, box-shadow 0.3s ease;
-    }
-
-    .stSelectbox:focus {
-        border-color: #457b9d;
-        box-shadow: 0 0 5px rgba(70, 123, 157, 0.5);
-    }
-
-    /* Style the form for selecting features */
-    .stMultiSelect {
-        border-radius: 8px;
-        padding: 10px;
-        border: 1px solid #d1d1d6;
-        background-color: #ffffff;
-    }
-
-</style>
-""", unsafe_allow_html=True)
-
 # Sidebar navigation
 page = st.sidebar.selectbox(
     "Pilih Halaman",
@@ -225,26 +82,15 @@ elif page == "Machine Learning":
 
     # Pilih fitur dan target
     st.write("### Pilih Fitur dan Target")
-
-    features = st.multiselect(
-        "Pilih Fitur", 
-        dataset.columns, 
-        default=['quality_score', 'ripeness_index', 'sugar_content_brix'],
-        help="Pilih kolom yang akan digunakan sebagai fitur untuk model."
-    )
-
-    target = st.selectbox(
-        "Pilih Target", 
-        dataset.columns, 
-        help="Pilih kolom target yang ingin diprediksi."
-    )
+    features = st.multiselect("Pilih Fitur", dataset.columns, default=['quality_score', 'ripeness_index', 'sugar_content_brix'])
+    target = st.selectbox("Pilih Target", dataset.columns)
 
     if not features:
         st.warning("Silakan pilih minimal satu fitur.")
     elif target in features:
         st.error("Target tidak boleh dipilih sebagai salah satu fitur.")
     else:
-        st.write(f"Melatih model untuk memprediksi **{target}** menggunakan fitur {features}.")
+        st.write(f"Melatih model untuk memprediksi {target} menggunakan fitur {features}.")
 
         # Pisahkan dataset menjadi data pelatihan dan pengujian
         X = dataset[features]
@@ -270,38 +116,47 @@ elif page == "Machine Learning":
             model.fit(X_train, y_train)
 
             y_pred = model.predict(X_test)
-            from sklearn.metrics import mean_squared_error
-            mse = mean_squared_error(y_test, y_pred)
-            st.write(f"Mean Squared Error: **{mse:.2f}**")
+            r2_score = model.score(X_test, y_test)
+            st.write(f"Skor R² Model Regresi: **{r2_score:.2f}**")
+
+        # Simpan model dan scaler di session_state
+        st.session_state.model = model
+        st.session_state.scaler = scaler
+        st.session_state.features = features
+        st.session_state.target = target
+        st.success("Model dan scaler berhasil disimpan untuk digunakan di halaman prediksi.")
 
 # --- Page: Prediksi ---
 elif page == "Prediksi":
     st.title("Prediksi Kualitas Pisang")
 
-    st.write("Masukkan data untuk memprediksi kualitas pisang:")
+    st.write("### Masukkan Data untuk Prediksi")
 
-    # Pastikan `target` sudah didefinisikan, jika tidak, beri pilihan kepada pengguna
-    if 'target' not in locals():
-        target = st.selectbox(
-            "Pilih Target untuk Prediksi", 
-            dataset.columns, 
-            help="Pilih kolom target yang ingin diprediksi."
-        )
-    
-    # Input form untuk prediksi
-    input_data = {}
-    for col in dataset.columns:
-        if col != target:  # Pastikan kolom target tidak dimasukkan
-            input_data[col] = st.number_input(f"Masukkan nilai untuk {col}", min_value=float(dataset[col].min()), max_value=float(dataset[col].max()), value=float(dataset[col].mean()))
+    # Periksa apakah model dan scaler telah disimpan
+    if "model" not in st.session_state or "scaler" not in st.session_state:
+        st.error("Model dan Scaler belum didefinisikan. Silakan latih model terlebih dahulu di halaman Machine Learning.")
+    else:
+        # Ambil fitur yang telah dilatih
+        features = st.session_state.features
+        target = st.session_state.target
+        scaler = st.session_state.scaler
+        model = st.session_state.model
 
-    if st.button("Prediksi"):
-        model_input = pd.DataFrame([input_data])
-        model_input_scaled = scaler.transform(model_input)
+        # Kumpulkan input data dari pengguna
+        input_data = {}
+        for feature in features:
+            input_data[feature] = st.number_input(f"Masukkan nilai untuk {feature}", value=0.0, step=0.1)
 
-        # Model Klasifikasi atau Regresi
-        if dataset[target].dtype == 'object' or len(dataset[target].unique()) < 10:
-            prediction = model.predict(model_input_scaled)
-            st.write(f"Prediksi Kualitas Pisang: **{prediction[0]}**")
-        else:
-            prediction = model.predict(model_input_scaled)
-            st.write(f"Prediksi Skor Kualitas Pisang: **{prediction[0]:.2f}**")
+        if st.button("Prediksi Kualitas"):
+            # Persiapkan data untuk prediksi
+            input_df = pd.DataFrame([input_data])
+            input_scaled = scaler.transform(input_df)
+
+            # Prediksi
+            prediction = model.predict(input_scaled)
+
+            # Tampilkan hasil prediksi
+            if dataset[target].dtype == 'object' or len(dataset[target].unique()) < 10:
+                st.write(f"Hasil Prediksi untuk **{target}**: **{prediction[0]}**")
+            else:
+                st.write(f"Hasil Prediksi untuk **{target}**: **{prediction[0]:.2f}**")
