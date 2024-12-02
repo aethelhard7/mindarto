@@ -17,11 +17,58 @@ st.set_page_config(
 # CSS for styling
 st.markdown("""
 <style>
-    .stSidebar {background-color: #f4f4f4;}
-    .stTitle {color: #007bff;}
-    @media (max-width: 768px) {
-        .stTitle {font-size: 18px;}
-        .stSidebar {font-size: 14px;}
+    /* Set background and font colors for better contrast */
+    .stApp {
+        background-color: #f0f0f5;
+        color: #333;
+    }
+
+    .stTitle {
+        color: #1d3557;
+        font-weight: bold;
+    }
+
+    /* Sidebar background */
+    .stSidebar {
+        background-color: #1d3557;
+        color: white;
+    }
+
+    /* Sidebar elements (buttons, inputs) */
+    .stSidebar .stButton, .stSidebar .stSelectbox, .stSidebar .stMultiselect {
+        background-color: #457b9d;
+        color: white;
+    }
+
+    /* Header styling */
+    h1, h2, h3 {
+        color: #1d3557;
+    }
+
+    /* Streamlit widget styling */
+    .stButton, .stSlider, .stNumberInput, .stSelectbox {
+        background-color: #457b9d;
+        color: white;
+    }
+
+    /* Add hover effects */
+    .stButton:hover {
+        background-color: #1d3557;
+        color: white;
+    }
+
+    /* Plotly chart background */
+    .plotly-graph-div {
+        background-color: #ffffff;
+    }
+
+    /* Scrollbar styling */
+    ::-webkit-scrollbar {
+        width: 8px;
+    }
+    ::-webkit-scrollbar-thumb {
+        background-color: #457b9d;
+        border-radius: 4px;
     }
 </style>
 """, unsafe_allow_html=True)
