@@ -73,6 +73,17 @@ st.markdown("""
         background-color: #a8dadc;
         padding: 10px;
         border-radius: 5px;
+        color: #333;  /* Make sure the text is visible */
+        font-weight: bold;
+    }
+
+    /* Styling for regression scores specifically */
+    .stMarkdown.regression-score {
+        background-color: #f1faee;  /* Latar belakang lebih terang */
+        padding: 12px;
+        color: #1d3557;  /* Teks lebih gelap agar kontras */
+        font-weight: bold;
+        border-radius: 8px;
     }
 
     /* Scrollbar styling */
@@ -227,6 +238,6 @@ elif page == "Prediksi Kualitas":
             prediction = model.predict(input_scaled)
 
             if dataset[st.session_state.target].dtype == 'object' or len(dataset[st.session_state.target].unique()) < 10:
-                st.success(f"Hasil Prediksi: **{prediction[0]}**")
+                st.markdown(f"<div class='regression-score'>Hasil Prediksi: **{prediction[0]}**</div>", unsafe_allow_html=True)
             else:
-                st.success(f"Hasil Prediksi: **{prediction[0]:.2f}**")
+                st.markdown(f"<div class='regression-score'>Skor R² Prediksi: **{prediction[0]:.2f}</div>", unsafe_allow_html=True)
