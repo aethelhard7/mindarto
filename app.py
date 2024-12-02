@@ -86,6 +86,43 @@ st.markdown("""
     .stTable {
         color: #333;
     }
+
+    /* Styling for Success and Error Messages */
+    .stSuccess, .stError {
+        color: #fff;
+        background-color: #2d6a4f; /* Green for success */
+        border-radius: 5px;
+        padding: 10px 20px;
+        font-weight: bold;
+        font-size: 16px;
+    }
+    .stError {
+        background-color: #d90429; /* Red for error */
+    }
+
+    /* Styling for the input labels */
+    .stTextInput, .stNumberInput {
+        color: #333;
+        background-color: #f1faee;
+        border-radius: 5px;
+        border: 1px solid #d1d1d6;
+    }
+
+    .stTextInput input, .stNumberInput input {
+        color: #333;
+    }
+
+    .stNumberInput label, .stTextInput label {
+        color: #1d3557;
+        font-weight: bold;
+    }
+
+    /* Styling for messages */
+    .stMessage {
+        color: #333;
+        font-weight: bold;
+    }
+
 </style>
 """, unsafe_allow_html=True)
 
