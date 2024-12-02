@@ -19,24 +19,25 @@ st.markdown("""
 <style>
     /* General Background */
     .stApp {
-        background-color: #f0f0f5;  /* Soft light background for the whole app */
+        background-color: #f4f4f9;  /* Soft light background for the whole app */
     }
 
     /* Styling for the header titles */
     h1, h2, h3 {
         color: #1d3557;
+        font-weight: 600;
     }
 
     /* Sidebar background */
     .stSidebar {
-        background-color: #457b9d;
+        background-color: #1d3557;
         color: white;
     }
 
     /* Styling for the page navigation */
     .stSidebar .stSelectbox, .stSidebar .stButton {
         color: #fff;
-        background-color: #1d3557;
+        background-color: #457b9d;
     }
 
     /* Styling for buttons */
@@ -44,8 +45,9 @@ st.markdown("""
         background-color: #1d3557;
         color: #fff;
         font-weight: bold;
-        border-radius: 5px;
-        padding: 10px 20px;
+        border-radius: 8px;
+        padding: 12px 25px;
+        transition: background-color 0.3s ease;
     }
     .stButton:hover {
         background-color: #457b9d;
@@ -103,9 +105,11 @@ st.markdown("""
     /* Styling for the input labels */
     .stTextInput, .stNumberInput {
         color: #333;
-        background-color: #f1faee;
-        border-radius: 5px;
+        background-color: #ffffff;
+        border-radius: 8px;
         border: 1px solid #d1d1d6;
+        padding: 10px;
+        transition: border 0.3s ease, box-shadow 0.3s ease;
     }
 
     .stTextInput input, .stNumberInput input {
@@ -117,10 +121,37 @@ st.markdown("""
         font-weight: bold;
     }
 
+    .stTextInput:focus, .stNumberInput:focus {
+        border-color: #457b9d;
+        box-shadow: 0 0 5px rgba(70, 123, 157, 0.5);
+    }
+
     /* Styling for messages */
     .stMessage {
         color: #333;
         font-weight: bold;
+    }
+
+    /* Styling the dropdown for features and target */
+    .stSelectbox {
+        border-radius: 8px;
+        padding: 10px;
+        border: 1px solid #d1d1d6;
+        background-color: #ffffff;
+        transition: border 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .stSelectbox:focus {
+        border-color: #457b9d;
+        box-shadow: 0 0 5px rgba(70, 123, 157, 0.5);
+    }
+
+    /* Style the form for selecting features */
+    .stMultiSelect {
+        border-radius: 8px;
+        padding: 10px;
+        border: 1px solid #d1d1d6;
+        background-color: #ffffff;
     }
 
 </style>
@@ -140,69 +171,34 @@ def load_data():
 # Load dataset
 dataset = load_data()
 
-# --- Page: Beranda ---
-if page == "Beranda":
-    st.title("🍌 Prediksi Kualitas Pisang")
-    st.write(
-        """
-        Selamat datang di aplikasi **Prediksi Kualitas Pisang**. Aplikasi ini memungkinkan Anda untuk mengeksplorasi dataset pisang
-        dan menggunakan machine learning untuk memprediksi kualitas pisang berdasarkan berbagai fitur.
-        Gunakan sidebar untuk menavigasi ke bagian lain.
-        """
-    )
-
-# --- Page: Analisis Data Eksploratif ---
-elif page == "Analisis Data Eksploratif":
-    st.title("Analisis Data Eksploratif (EDA)")
-    st.write("### Tampilan Dataset")
-    st.dataframe(dataset)
-
-    st.write("### Statistik Deskriptif")
-    st.write(dataset.describe())
-
-    st.write("### Cek Nilai yang Hilang")
-    missing_values = dataset.isnull().sum()
-    st.write(missing_values[missing_values > 0])
-
-    st.write("### Data Kategorikal")
-    categorical_columns = ['variety', 'region', 'quality_category', 'ripeness_category']
-    for col in categorical_columns:
-        st.write(f"### Distribusi {col}")
-        st.write(dataset[col].value_counts())
-
-# --- Page: Visualisasi ---
-elif page == "Visualisasi":
-    st.title("Visualisasi Interaktif")
-
-    # Scatter plot dengan Plotly
-    fig = px.scatter(dataset, x="quality_score", y="sugar_content_brix", color="region", title="Skor Kualitas vs Kandungan Gula (Brix)")
-    st.plotly_chart(fig)
-
-    # Histogram dengan Plotly
-    st.write("### Histogram Skor Kualitas")
-    fig_hist = px.histogram(dataset, x="quality_score", nbins=30, title="Distribusi Skor Kualitas")
-    st.plotly_chart(fig_hist)
-
-    # Box Plot untuk Firmness vs Ripeness Category
-    st.write("### Firmness vs Kategori Kematangan (Box Plot)")
-    fig_box = px.box(dataset, x="ripeness_category", y="firmness_kgf", color="ripeness_category", title="Firmness vs Kategori Kematangan")
-    st.plotly_chart(fig_box)
-
 # --- Page: Machine Learning ---
-elif page == "Machine Learning":
+if page == "Machine Learning":
     st.title("Latih Model Machine Learning")
 
     # Pilih fitur dan target
     st.write("### Pilih Fitur dan Target")
-    features = st.multiselect("Pilih Fitur", dataset.columns, default=['quality_score', 'ripeness_index', 'sugar_content_brix'])
-    target = st.selectbox("Pilih Target", dataset.columns)
+
+    # Pilih fitur menggunakan multi-select
+    features = st.multiselect(
+        "Pilih Fitur", 
+        dataset.columns, 
+        default=['quality_score', 'ripeness_index', 'sugar_content_brix'],
+        help="Pilih kolom yang akan digunakan sebagai fitur untuk model."
+    )
+
+    # Pilih target
+    target = st.selectbox(
+        "Pilih Target", 
+        dataset.columns, 
+        help="Pilih kolom target yang ingin diprediksi."
+    )
 
     if not features:
         st.warning("Silakan pilih minimal satu fitur.")
     elif target in features:
         st.error("Target tidak boleh dipilih sebagai salah satu fitur.")
     else:
-        st.write(f"Melatih model untuk memprediksi {target} menggunakan fitur {features}.")
+        st.write(f"Melatih model untuk memprediksi **{target}** menggunakan fitur {features}.")
 
         # Pisahkan dataset menjadi data pelatihan dan pengujian
         X = dataset[features]
@@ -237,38 +233,3 @@ elif page == "Machine Learning":
         st.session_state.features = features
         st.session_state.target = target
         st.success("Model dan scaler berhasil disimpan untuk digunakan di halaman prediksi.")
-
-# --- Page: Prediksi ---
-elif page == "Prediksi":
-    st.title("Prediksi Kualitas Pisang")
-
-    st.write("### Masukkan Data untuk Prediksi")
-
-    # Periksa apakah model dan scaler telah disimpan
-    if "model" not in st.session_state or "scaler" not in st.session_state:
-        st.error("Model dan Scaler belum didefinisikan. Silakan latih model terlebih dahulu di halaman Machine Learning.")
-    else:
-        # Ambil fitur yang telah dilatih
-        features = st.session_state.features
-        target = st.session_state.target
-        scaler = st.session_state.scaler
-        model = st.session_state.model
-
-        # Kumpulkan input data dari pengguna
-        input_data = {}
-        for feature in features:
-            input_data[feature] = st.number_input(f"Masukkan nilai untuk {feature}", value=0.0, step=0.1)
-
-        if st.button("Prediksi Kualitas"):
-            # Persiapkan data untuk prediksi
-            input_df = pd.DataFrame([input_data])
-            input_scaled = scaler.transform(input_df)
-
-            # Prediksi
-            prediction = model.predict(input_scaled)
-
-            # Tampilkan hasil prediksi
-            if dataset[target].dtype == 'object' or len(dataset[target].unique()) < 10:
-                st.write(f"Hasil Prediksi untuk **{target}**: **{prediction[0]}**")
-            else:
-                st.write(f"Hasil Prediksi untuk **{target}**: **{prediction[0]:.2f}**")
