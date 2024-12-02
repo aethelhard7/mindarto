@@ -171,14 +171,61 @@ def load_data():
 # Load dataset
 dataset = load_data()
 
+# --- Page: Beranda ---
+if page == "Beranda":
+    st.title("🍌 Prediksi Kualitas Pisang")
+    st.write(
+        """
+        Selamat datang di aplikasi **Prediksi Kualitas Pisang**. Aplikasi ini memungkinkan Anda untuk mengeksplorasi dataset pisang
+        dan menggunakan machine learning untuk memprediksi kualitas pisang berdasarkan berbagai fitur.
+        Gunakan sidebar untuk menavigasi ke bagian lain.
+        """
+    )
+
+# --- Page: Analisis Data Eksploratif ---
+elif page == "Analisis Data Eksploratif":
+    st.title("Analisis Data Eksploratif (EDA)")
+    st.write("### Tampilan Dataset")
+    st.dataframe(dataset)
+
+    st.write("### Statistik Deskriptif")
+    st.write(dataset.describe())
+
+    st.write("### Cek Nilai yang Hilang")
+    missing_values = dataset.isnull().sum()
+    st.write(missing_values[missing_values > 0])
+
+    st.write("### Data Kategorikal")
+    categorical_columns = ['variety', 'region', 'quality_category', 'ripeness_category']
+    for col in categorical_columns:
+        st.write(f"### Distribusi {col}")
+        st.write(dataset[col].value_counts())
+
+# --- Page: Visualisasi ---
+elif page == "Visualisasi":
+    st.title("Visualisasi Interaktif")
+
+    # Scatter plot dengan Plotly
+    fig = px.scatter(dataset, x="quality_score", y="sugar_content_brix", color="region", title="Skor Kualitas vs Kandungan Gula (Brix)")
+    st.plotly_chart(fig)
+
+    # Histogram dengan Plotly
+    st.write("### Histogram Skor Kualitas")
+    fig_hist = px.histogram(dataset, x="quality_score", nbins=30, title="Distribusi Skor Kualitas")
+    st.plotly_chart(fig_hist)
+
+    # Box Plot untuk Firmness vs Ripeness Category
+    st.write("### Firmness vs Kategori Kematangan (Box Plot)")
+    fig_box = px.box(dataset, x="ripeness_category", y="firmness_kgf", color="ripeness_category", title="Firmness vs Kategori Kematangan")
+    st.plotly_chart(fig_box)
+
 # --- Page: Machine Learning ---
-if page == "Machine Learning":
+elif page == "Machine Learning":
     st.title("Latih Model Machine Learning")
 
     # Pilih fitur dan target
     st.write("### Pilih Fitur dan Target")
 
-    # Pilih fitur menggunakan multi-select
     features = st.multiselect(
         "Pilih Fitur", 
         dataset.columns, 
@@ -186,7 +233,6 @@ if page == "Machine Learning":
         help="Pilih kolom yang akan digunakan sebagai fitur untuk model."
     )
 
-    # Pilih target
     target = st.selectbox(
         "Pilih Target", 
         dataset.columns, 
@@ -224,12 +270,30 @@ if page == "Machine Learning":
             model.fit(X_train, y_train)
 
             y_pred = model.predict(X_test)
-            r2_score = model.score(X_test, y_test)
-            st.markdown(f"### Skor R² Model Regresi: **{r2_score:.2f}**", unsafe_allow_html=True)
+            from sklearn.metrics import mean_squared_error
+            mse = mean_squared_error(y_test, y_pred)
+            st.write(f"Mean Squared Error: **{mse:.2f}**")
 
-        # Simpan model dan scaler di session_state
-        st.session_state.model = model
-        st.session_state.scaler = scaler
-        st.session_state.features = features
-        st.session_state.target = target
-        st.success("Model dan scaler berhasil disimpan untuk digunakan di halaman prediksi.")
+# --- Page: Prediksi ---
+elif page == "Prediksi":
+    st.title("Prediksi Kualitas Pisang")
+
+    st.write("Masukkan data untuk memprediksi kualitas pisang:")
+
+    # Input form untuk prediksi
+    input_data = {}
+    for col in dataset.columns:
+        if col != target:
+            input_data[col] = st.number_input(f"Masukkan nilai untuk {col}", min_value=float(dataset[col].min()), max_value=float(dataset[col].max()), value=float(dataset[col].mean()))
+
+    if st.button("Prediksi"):
+        model_input = pd.DataFrame([input_data])
+        model_input_scaled = scaler.transform(model_input)
+
+        # Model Klasifikasi atau Regresi
+        if dataset[target].dtype == 'object' or len(dataset[target].unique()) < 10:
+            prediction = model.predict(model_input_scaled)
+            st.write(f"Prediksi Kualitas Pisang: **{prediction[0]}**")
+        else:
+            prediction = model.predict(model_input_scaled)
+            st.write(f"Prediksi Skor Kualitas Pisang: **{prediction[0]:.2f}**")
