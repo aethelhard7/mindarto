@@ -62,6 +62,19 @@ st.markdown("""
         background-color: #ffffff;
     }
 
+    /* Navigation page background */
+    .stSidebar selectbox {
+        background-color: #f1faee;
+        color: #333;
+    }
+
+    /* Background for the model accuracy score */
+    .stMarkdown {
+        background-color: #a8dadc;
+        padding: 10px;
+        border-radius: 5px;
+    }
+
     /* Scrollbar styling */
     ::-webkit-scrollbar {
         width: 8px;
